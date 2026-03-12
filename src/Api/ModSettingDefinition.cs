@@ -13,13 +13,6 @@ public abstract class ModSettingDefinition<T> : ModSettingDefinitionBase
     public Func<T>? GetCurrentValue { get; init; }
 
     /// <summary>
-    /// Legacy callback for immediate UI changes.
-    /// ModManagerSettings now treats Apply as authoritative and does not invoke this callback.
-    /// Keep this only for backwards compatibility with older registrations.
-    /// </summary>
-    public Action<T>? OnChanged { get; init; }
-
-    /// <summary>
     /// Optional callback invoked when the user presses the submenu Apply button.
     /// Use this when a setting should only commit after explicit confirmation.
     /// </summary>

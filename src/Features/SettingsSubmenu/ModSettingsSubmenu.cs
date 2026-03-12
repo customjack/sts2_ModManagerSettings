@@ -332,6 +332,7 @@ internal sealed class ModSettingsSubmenu : NSubmenu
         RenderExtraRows();
 
         _defaultsButton.Visible = _currentRegistration?.OnRestoreDefaults != null;
+        _defaultsButton.Disabled = _currentRegistration?.OnRestoreDefaults == null;
         _applyButton.Disabled = _currentRegistration == null || !HasAnyApplyCallbacks(_currentRegistration);
         ApplyShellMargins();
         Callable.From(UpdateScrollLayout).CallDeferred();

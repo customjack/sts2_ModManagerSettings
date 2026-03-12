@@ -11,7 +11,7 @@ namespace ModManagerSettings.Core;
 public static class ModBootstrap
 {
     private const string HarmonyId = "modmanagersettings.harmony";
-    private const string BuildMarker = "2026-03-09-e";
+    private const string BuildMarker = "2026-03-12-mp-sync-applyonly-a";
 
     private static bool _initialized;
     private static Harmony? _harmony;
