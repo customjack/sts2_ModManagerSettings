@@ -1,26 +1,34 @@
 # ModManagerSettings
 
-`ModManagerSettings` is a clean starter project for building a shared settings host mod for STS2.
+`ModManagerSettings` is a shared settings-host mod for Slay the Spire 2.
 
-This project was copied from `ExampleMod` and stripped of all tutorial gameplay features so we can implement:
-- mod-menu settings-button injection per installed mod
-- a registration API for other mods to declare settings rows
-- callbacks for change/apply/default/reset behavior
+It adds a settings button per mod in the in-game mod list and exposes an API so other mods can register settings definitions, defaults, and apply/reset callbacks.
 
-## Current status
+## Dependencies
 
-- Project renamed to `ModManagerSettings`.
-- Example gameplay patches removed.
-- Bootstrap + build/pack/install scripts retained.
+- None required for runtime.
+- Other mods can depend on `ModManagerSettings` to host their settings UI.
 
-## Quick start
+## Install (Manual)
 
-1. Create local env file:
-   - `cp .env.example .env`
-2. Set `STS2_INSTALL_DIR` in `.env`.
-3. Build and stage:
-   - `./scripts/bash/build_and_stage.sh`
-4. Build pck:
-   - `./scripts/bash/make_pck.sh`
-5. Install:
-   - `./scripts/bash/install_to_game.sh`
+1. Close Slay the Spire 2.
+2. Extract the release zip for `ModManagerSettings`.
+3. In Steam, right-click `Slay the Spire 2` -> `Properties` -> `Installed Files` -> `Browse`.
+4. In the game folder that opens, create a `mods` folder if it does not exist.
+5. Drag the extracted `ModManagerSettings` folder into `mods`.
+6. Confirm these files exist in `mods/ModManagerSettings`:
+   - `ModManagerSettings.dll`
+   - `ModManagerSettings.pck`
+7. Launch Slay the Spire 2. If prompted to enable mods, accept and relaunch.
+8. In-game, open `Settings` -> `General` -> `Mods` and make sure `ModManagerSettings` is enabled.
+
+## Developer Notes
+
+- Project root: `modding/projects/ModManagerSettings`
+- Build (WSL/Linux scripts):
+  - `./scripts/bash/build_and_stage.sh`
+  - `./scripts/bash/make_pck.sh`
+  - `./scripts/bash/install_to_game.sh`
+- Environment:
+  - Copy `.env.example` to `.env`
+  - Set `STS2_INSTALL_DIR` in `.env`
