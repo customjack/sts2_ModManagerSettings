@@ -46,6 +46,14 @@ func _init() -> void:
 		quit(11)
 		return
 
+	var settings_icon_src := ProjectSettings.globalize_path("res://resources/settings.png")
+	if FileAccess.file_exists(settings_icon_src):
+		err = packer.add_file("res://resources/settings.png", settings_icon_src)
+		if err != OK:
+			printerr("Failed to add resources/settings.png, code: ", err)
+			quit(17)
+			return
+
 	if image_src != "" and FileAccess.file_exists(image_src):
 		err = packer.add_file("res://mod_image.png", image_src)
 		if err != OK:

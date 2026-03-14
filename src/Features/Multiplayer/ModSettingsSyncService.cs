@@ -12,6 +12,16 @@ namespace ModManagerSettings.Features.Multiplayer;
 internal static class ModSettingsSyncService
 {
     private sealed record BaselineValue(SettingWireType Type, string Value);
+    private sealed class RemoteSyncApplyScope : IDisposable
+    {
+        public void Dispose()
+        {
+            lock (SyncLock)
+            {
+                _remoteSyncApplyDepth = Math.Max(0, _remoteSyncApplyDepth - 1);
+            }
+        }
+    }
 
     private static readonly object SyncLock = new();
     private static readonly Dictionary<INetGameService, MessageHandlerDelegate<ModSettingsSnapshotMessage>> SnapshotHandlers = new();
@@ -19,6 +29,7 @@ internal static class ModSettingsSyncService
     private static readonly Dictionary<string, Dictionary<string, BaselineValue>> ClientBaseline = new(StringComparer.OrdinalIgnoreCase);
 
     private static bool _clientOverridesActive;
+    private static int _remoteSyncApplyDepth;
 
     public static bool IsSessionLocked
     {
@@ -26,15 +37,18 @@ internal static class ModSettingsSyncService
         {
             lock (SyncLock)
             {
-                foreach (var netService in SnapshotHandlers.Keys)
-                {
-                    if (netService.IsConnected && IsMultiplayer(netService.Type))
-                    {
-                        return true;
-                    }
-                }
+                return IsSessionLockedUnsafe();
+            }
+        }
+    }
 
-                return false;
+    public static bool IsLocalMutationLocked
+    {
+        get
+        {
+            lock (SyncLock)
+            {
+                return IsSessionLockedUnsafe() && _remoteSyncApplyDepth == 0;
             }
         }
     }
@@ -103,6 +117,7 @@ internal static class ModSettingsSyncService
         lock (SyncLock)
         {
             CaptureClientBaseline(values);
+            using var _ = BeginRemoteSyncApplyScopeUnsafe();
             ApplySnapshotValues(values, "[ModManagerSettings] Applied host snapshot");
             _clientOverridesActive = true;
         }
@@ -161,10 +176,32 @@ internal static class ModSettingsSyncService
             }
         }
 
-        ApplySnapshotValues(toRestore, "[ModManagerSettings] Restored local settings");
+        using (BeginRemoteSyncApplyScopeUnsafe())
+        {
+            ApplySnapshotValues(toRestore, "[ModManagerSettings] Restored local settings");
+        }
         ClientBaseline.Clear();
         _clientOverridesActive = false;
         Log.Info($"[ModManagerSettings] Restored client local settings after multiplayer session. entries={toRestore.Count}.");
+    }
+
+    private static bool IsSessionLockedUnsafe()
+    {
+        foreach (var netService in SnapshotHandlers.Keys)
+        {
+            if (netService.IsConnected && IsMultiplayer(netService.Type))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static IDisposable BeginRemoteSyncApplyScopeUnsafe()
+    {
+        _remoteSyncApplyDepth++;
+        return new RemoteSyncApplyScope();
     }
 
     private static void ApplySnapshotValues(IEnumerable<ModSettingWireValue> values, string logPrefix)

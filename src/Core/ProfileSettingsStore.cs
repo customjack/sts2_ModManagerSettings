@@ -13,6 +13,8 @@ internal sealed class ProfileSettingsData
     public Dictionary<string, ModPopupState> Mods { get; set; } = new(StringComparer.OrdinalIgnoreCase);
 
     public string LastOpenedMod { get; set; } = string.Empty;
+
+    public Dictionary<string, Dictionary<string, string>> SettingsValues { get; set; } = new(StringComparer.OrdinalIgnoreCase);
 }
 
 internal sealed class ModPopupState
@@ -33,23 +35,45 @@ internal static class ProfileSettingsStore
     };
 
     private static readonly object LockObject = new();
+    private static bool _loggedFallbackWarning;
 
     /// <summary>
     /// Resolves a user:// profile-scoped settings path.
     /// </summary>
-    private static string ResolveUserPath()
+    private static bool TryResolveUserPath(out string userPath, bool logOnFailure)
     {
         try
         {
             var raw = SaveManager.Instance.GetProfileScopedPath(RelativeSettingsPath);
-            return NormalizeSeparators(raw);
+            userPath = NormalizeSeparators(raw);
+            return true;
         }
         catch (Exception ex)
         {
             var fallbackUserPath = "user://" + RelativeSettingsPath;
-            Log.Warn($"[ModManagerSettings] Failed to resolve profile save path via SaveManager. Falling back to '{fallbackUserPath}'. {ex.Message}");
-            return fallbackUserPath;
+            userPath = fallbackUserPath;
+            if (logOnFailure && !_loggedFallbackWarning)
+            {
+                _loggedFallbackWarning = true;
+                Log.Warn($"[ModManagerSettings] Failed to resolve profile save path via SaveManager. Falling back to '{fallbackUserPath}'. {ex.Message}");
+            }
+
+            return false;
         }
+    }
+
+    private static string ResolveUserPath()
+    {
+        TryResolveUserPath(out var userPath, logOnFailure: true);
+        return userPath;
+    }
+
+    /// <summary>
+    /// Indicates whether SaveManager has initialized enough to resolve a profile-scoped path.
+    /// </summary>
+    public static bool IsProfileScopedPathReady()
+    {
+        return TryResolveUserPath(out _, logOnFailure: false);
     }
 
     /// <summary>
@@ -96,6 +120,58 @@ internal static class ProfileSettingsStore
             }
 
             return state;
+        }
+    }
+
+    /// <summary>
+    /// Returns persisted setting values for one mod key.
+    /// </summary>
+    public static Dictionary<string, string> GetPersistedSettingsForMod(string modPckName)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(modPckName);
+
+        lock (LockObject)
+        {
+            var data = LoadInternal();
+            if (!data.SettingsValues.TryGetValue(modPckName, out var values))
+            {
+                return new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            }
+
+            return new Dictionary<string, string>(values, StringComparer.OrdinalIgnoreCase);
+        }
+    }
+
+    /// <summary>
+    /// Persists a full snapshot of setting values for one mod key.
+    /// </summary>
+    public static void SavePersistedSettingsForMod(string modPckName, IReadOnlyDictionary<string, string> values)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(modPckName);
+        ArgumentNullException.ThrowIfNull(values);
+
+        lock (LockObject)
+        {
+            var data = LoadInternal();
+            data.SettingsValues[modPckName] = new Dictionary<string, string>(values, StringComparer.OrdinalIgnoreCase);
+            SaveInternal(data);
+        }
+    }
+
+    /// <summary>
+    /// Removes persisted settings snapshot for one mod key.
+    /// </summary>
+    public static void ClearPersistedSettingsForMod(string modPckName)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(modPckName);
+
+        lock (LockObject)
+        {
+            var data = LoadInternal();
+            if (data.SettingsValues.Remove(modPckName))
+            {
+                SaveInternal(data);
+            }
         }
     }
 
