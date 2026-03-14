@@ -24,7 +24,6 @@ It adds a settings button per mod in the in-game mod list and exposes an API so 
 
 ## Developer Notes
 
-- Project root: `modding/projects/ModManagerSettings`
 - Build (WSL/Linux scripts):
   - `./scripts/bash/build_and_stage.sh`
   - `./scripts/bash/make_pck.sh`
