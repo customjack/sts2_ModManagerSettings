@@ -46,7 +46,6 @@ internal sealed class NumberSettingRow : SettingRowBase, IApplySettingRow, IRese
         {
             var value = _spin.Value;
             _definition.OnApply.Invoke(value);
-            Log.Info($"[ModManagerSettings] Number applied: mod='{_modKey}' key='{_definition.Key}' value={value:F4}.");
             return true;
         }
         catch (Exception ex)

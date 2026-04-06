@@ -88,7 +88,6 @@ internal sealed class ColorSettingRow : SettingRowBase, IApplySettingRow, IReset
         try
         {
             _definition.OnApply.Invoke(value);
-            Log.Info($"[ModManagerSettings] Color applied: mod='{_modKey}' key='{_definition.Key}' value='{value}'.");
             return true;
         }
         catch (Exception ex)

@@ -14,9 +14,10 @@ internal static class ModSettingsSubmenuController
 
     public static void Open(NModMenuRow sourceRow, Mod mod)
     {
+        var modPckName = ModMetadata.GetPckName(mod);
         try
         {
-            var popupState = ProfileSettingsStore.RecordPopupOpened(mod.pckName);
+            var popupState = ProfileSettingsStore.RecordPopupOpened(modPckName);
             var savePath = ProfileSettingsStore.ResolveAbsolutePath();
 
             var stack = FindSubmenuStack(sourceRow);
@@ -37,16 +38,14 @@ internal static class ModSettingsSubmenuController
                 };
                 stack.AddChild(submenu);
                 submenu.EnsureUiBuilt();
-                Log.Info("[ModManagerSettings] Created reusable mod settings submenu instance.");
             }
 
             submenu.SetContext(mod, popupState, savePath);
             stack.Push(submenu);
-            Log.Info($"[ModManagerSettings] Opened submenu for mod '{mod.pckName}'. save_path='{savePath}'.");
         }
         catch (Exception ex)
         {
-            Log.Error($"[ModManagerSettings] Failed opening settings submenu for '{mod.pckName}'. {ex}");
+            Log.Error($"[ModManagerSettings] Failed opening settings submenu for '{modPckName}'. {ex}");
         }
     }
 

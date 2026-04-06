@@ -3,7 +3,7 @@ extends SceneTree
 func _init() -> void:
 	var args := OS.get_cmdline_user_args()
 	if args.size() < 2:
-		printerr("Usage: pack_pck.gd <out.pck> <mod_manifest.json> [mod_image.png] [mod_image.png.import imported.ctex ctex_target]")
+		printerr("Usage: pack_pck.gd <out.pck> <mod.json> [mod_image.png] [mod_image.png.import imported.ctex ctex_target]")
 		quit(2)
 		return
 
@@ -20,18 +20,21 @@ func _init() -> void:
 		image_ctex_src = args[4]
 		image_ctex_target = args[5]
 
-	var pck_name := ""
-	var manifest_json := FileAccess.get_file_as_string(manifest_src)
-	var manifest_data = JSON.parse_string(manifest_json)
-	if manifest_data is Dictionary and manifest_data.has("pck_name"):
-		pck_name = str(manifest_data["pck_name"]).strip_edges()
-	if pck_name.is_empty():
-		pck_name = out_pck.get_file().get_basename()
-
 	if not FileAccess.file_exists(manifest_src):
 		printerr("Missing manifest file: ", manifest_src)
 		quit(3)
 		return
+
+	var mod_id := ""
+	var manifest_json := FileAccess.get_file_as_string(manifest_src)
+	var manifest_data = JSON.parse_string(manifest_json)
+	if manifest_data is Dictionary:
+		if manifest_data.has("id"):
+			mod_id = str(manifest_data["id"]).strip_edges()
+		elif manifest_data.has("pck_name"):
+			mod_id = str(manifest_data["pck_name"]).strip_edges()
+	if mod_id.is_empty():
+		mod_id = out_pck.get_file().get_basename()
 
 	var packer := PCKPacker.new()
 	var err := packer.pck_start(out_pck)
@@ -40,20 +43,6 @@ func _init() -> void:
 		quit(10)
 		return
 
-	err = packer.add_file("res://mod_manifest.json", manifest_src)
-	if err != OK:
-		printerr("Failed to add mod_manifest.json, code: ", err)
-		quit(11)
-		return
-
-	var settings_icon_src := ProjectSettings.globalize_path("res://resources/settings.png")
-	if FileAccess.file_exists(settings_icon_src):
-		err = packer.add_file("res://resources/settings.png", settings_icon_src)
-		if err != OK:
-			printerr("Failed to add resources/settings.png, code: ", err)
-			quit(17)
-			return
-
 	if image_src != "" and FileAccess.file_exists(image_src):
 		err = packer.add_file("res://mod_image.png", image_src)
 		if err != OK:
@@ -61,14 +50,14 @@ func _init() -> void:
 			quit(12)
 			return
 
-		err = packer.add_file("res://%s/mod_image.png" % pck_name, image_src)
+		err = packer.add_file("res://%s/mod_image.png" % mod_id, image_src)
 		if err != OK:
 			printerr("Failed to add namespaced mod_image.png, code: ", err)
 			quit(14)
 			return
 
 		if image_import_src != "" and FileAccess.file_exists(image_import_src):
-			err = packer.add_file("res://%s/mod_image.png.import" % pck_name, image_import_src)
+			err = packer.add_file("res://%s/mod_image.png.import" % mod_id, image_import_src)
 			if err != OK:
 				printerr("Failed to add namespaced mod_image.png.import, code: ", err)
 				quit(15)

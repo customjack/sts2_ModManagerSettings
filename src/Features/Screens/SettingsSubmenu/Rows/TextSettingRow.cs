@@ -44,7 +44,6 @@ internal sealed class TextSettingRow : SettingRowBase, IApplySettingRow, IResetS
         {
             var value = _lineEdit.Text;
             _definition.OnApply.Invoke(value);
-            Log.Info($"[ModManagerSettings] Text applied: mod='{_modKey}' key='{_definition.Key}' value='{value}'.");
             return true;
         }
         catch (Exception ex)

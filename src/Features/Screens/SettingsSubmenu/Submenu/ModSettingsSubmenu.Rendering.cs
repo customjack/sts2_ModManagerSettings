@@ -17,8 +17,8 @@ internal sealed partial class ModSettingsSubmenu
         }
 
         var rows = EnsurePathContainer(MetaPath);
-        AddInfoCard(rows, "Mod Key", _targetMod.pckName);
-        AddInfoCard(rows, "Display Name", _targetMod.manifest?.name ?? _targetMod.pckName);
+        AddInfoCard(rows, "Mod Key", GetTargetModPckName());
+        AddInfoCard(rows, "Display Name", GetTargetModDisplayName());
         AddInfoCard(rows, "Author", _targetMod.manifest?.author ?? "Unknown");
         AddInfoCard(rows, "Version", _targetMod.manifest?.version ?? "Unknown");
 
@@ -44,39 +44,39 @@ internal sealed partial class ModSettingsSubmenu
             return;
         }
 
-        var persistedValues = ProfileSettingsStore.GetPersistedSettingsForMod(_targetMod.pckName);
+        var persistedValues = ProfileSettingsStore.GetPersistedSettingsForMod(GetTargetModPckName());
 
         foreach (var toggle in _currentRegistration.ToggleSettings)
         {
-            var row = new ToggleSettingRow(_targetMod.pckName, toggle);
+            var row = new ToggleSettingRow(GetTargetModPckName(), toggle);
             TryApplyPersistedValue(row, persistedValues);
             EnsurePathContainer(PathFor(toggle)).AddChild(row);
         }
 
         foreach (var number in _currentRegistration.NumberSettings)
         {
-            var row = new NumberSettingRow(_targetMod.pckName, number);
+            var row = new NumberSettingRow(GetTargetModPckName(), number);
             TryApplyPersistedValue(row, persistedValues);
             EnsurePathContainer(PathFor(number)).AddChild(row);
         }
 
         foreach (var choice in _currentRegistration.ChoiceSettings)
         {
-            var row = new ChoiceSettingRow(_targetMod.pckName, choice);
+            var row = new ChoiceSettingRow(GetTargetModPckName(), choice);
             TryApplyPersistedValue(row, persistedValues);
             EnsurePathContainer(PathFor(choice)).AddChild(row);
         }
 
         foreach (var text in _currentRegistration.TextSettings)
         {
-            var row = new TextSettingRow(_targetMod.pckName, text);
+            var row = new TextSettingRow(GetTargetModPckName(), text);
             TryApplyPersistedValue(row, persistedValues);
             EnsurePathContainer(PathFor(text)).AddChild(row);
         }
 
         foreach (var color in _currentRegistration.ColorSettings)
         {
-            var row = new ColorSettingRow(_targetMod.pckName, color);
+            var row = new ColorSettingRow(GetTargetModPckName(), color);
             TryApplyPersistedValue(row, persistedValues);
             EnsurePathContainer(PathFor(color)).AddChild(row);
         }

@@ -110,11 +110,7 @@ internal static class ProfileSettingsStore
             state.LastOpenedUtcUnixMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
             data.LastOpenedMod = modPckName;
 
-            if (SaveInternal(data))
-            {
-                Log.Info($"[ModManagerSettings] Saved popup telemetry for '{modPckName}' (count={state.PopupOpenCount}) at '{ResolveAbsolutePath()}'.");
-            }
-            else
+            if (!SaveInternal(data))
             {
                 Log.Warn($"[ModManagerSettings] Popup telemetry updated in memory for '{modPckName}', but persistence failed.");
             }
@@ -182,7 +178,6 @@ internal static class ProfileSettingsStore
         {
             if (!File.Exists(path))
             {
-                Log.Info($"[ModManagerSettings] No profile settings file found at '{path}'. Creating defaults in memory.");
                 return new ProfileSettingsData();
             }
 

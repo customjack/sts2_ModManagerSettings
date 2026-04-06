@@ -5,7 +5,6 @@ using ModManagerSettings.Api;
 using ModManagerSettings.Core;
 using ModManagerSettings.Features.Screens.SettingsSubmenu.Rows;
 using Godot;
-using MegaCrit.Sts2.Core.Logging;
 using MegaCrit.Sts2.Core.Modding;
 using MegaCrit.Sts2.Core.Nodes.Screens.MainMenu;
 
@@ -97,11 +96,11 @@ internal sealed partial class ModSettingsSubmenu : NSubmenu
             return;
         }
 
-        _currentRegistration = ModSettingsRegistry.TryGet(_targetMod.pckName, out var registration)
+        _currentRegistration = ModSettingsRegistry.TryGet(GetTargetModPckName(), out var registration)
             ? registration
             : null;
 
-        _headerLabel.Text = $"MOD SETTINGS: {_targetMod.manifest?.name ?? _targetMod.pckName}";
+        _headerLabel.Text = $"MOD SETTINGS: {GetTargetModDisplayName()}";
         _descriptionLabel.Text = ResolveExplorerDescription();
 
         BuildPathExplorer();
@@ -114,7 +113,15 @@ internal sealed partial class ModSettingsSubmenu : NSubmenu
         ApplyShellMargins();
         Callable.From(UpdateScrollLayout).CallDeferred();
 
-        var summary = string.Join(", ", _pathOrder.Select(path => $"{path}={_rowsByPath[path].GetChildCount()}"));
-        Log.Info($"[ModManagerSettings] Rendered path explorer for '{_targetMod.pckName}': {summary}.");
+    }
+
+    private string GetTargetModPckName()
+    {
+        return ModMetadata.GetPckName(_targetMod);
+    }
+
+    private string GetTargetModDisplayName()
+    {
+        return ModMetadata.GetDisplayName(_targetMod);
     }
 }

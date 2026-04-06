@@ -27,7 +27,6 @@ internal sealed partial class ModSettingsSubmenu
             }
         }
 
-        Log.Info($"[ModManagerSettings] Reset current path to defaults: mod='{_targetMod?.pckName}' path='{_activePath}' rows={resetCount}.");
     }
 
     private void OnResetAllPressed()
@@ -52,28 +51,20 @@ internal sealed partial class ModSettingsSubmenu
             if (_currentRegistration?.OnRestoreDefaults != null)
             {
                 _currentRegistration.OnRestoreDefaults.Invoke();
-                Log.Info($"[ModManagerSettings] Reset-all callback completed for '{_targetMod.pckName}'.");
             }
             else
             {
-                var resetRows = ResetAllSettingRowsToDefaults();
-                var appliedRows = ApplySettingRows();
-                if (_currentRegistration?.OnApply != null)
-                {
-                    _currentRegistration.OnApply.Invoke();
-                }
-
-                Log.Info(
-                    $"[ModManagerSettings] Reset-all fallback completed for '{_targetMod.pckName}'. " +
-                    $"rows_reset={resetRows}, rows_applied={appliedRows}, registration_apply={_currentRegistration?.OnApply != null}.");
+                ResetAllSettingRowsToDefaults();
+                ApplySettingRows();
+                _currentRegistration?.OnApply?.Invoke();
             }
 
-            ProfileSettingsStore.ClearPersistedSettingsForMod(_targetMod.pckName);
+            ProfileSettingsStore.ClearPersistedSettingsForMod(GetTargetModPckName());
             RefreshUi();
         }
         catch (Exception ex)
         {
-            Log.Error($"[ModManagerSettings] Reset-all callback failed for '{_targetMod.pckName}'. {ex}");
+            Log.Error($"[ModManagerSettings] Reset-all callback failed for '{GetTargetModPckName()}'. {ex}");
         }
     }
 
@@ -129,35 +120,20 @@ internal sealed partial class ModSettingsSubmenu
 
         if (_currentRegistration == null)
         {
-            Log.Info($"[ModManagerSettings] Apply pressed for '{_targetMod.pckName}', but no settings registration exists.");
             return;
         }
 
-        var appliedRows = ApplySettingRows();
+        ApplySettingRows();
 
         try
         {
-            if (_currentRegistration.OnApply != null)
-            {
-                _currentRegistration.OnApply.Invoke();
-                Log.Info($"[ModManagerSettings] Registration-level Apply callback completed for '{_targetMod.pckName}'.");
-            }
-
-            if (appliedRows == 0 && _currentRegistration.OnApply == null)
-            {
-                Log.Info($"[ModManagerSettings] Apply pressed for '{_targetMod.pckName}', but no per-setting or registration apply callbacks are registered.");
-            }
-            else
-            {
-                Log.Info($"[ModManagerSettings] Apply completed for '{_targetMod.pckName}'. per_setting_callbacks={appliedRows}, has_registration_callback={_currentRegistration.OnApply != null}.");
-            }
-
+            _currentRegistration.OnApply?.Invoke();
             PersistCurrentSettingRows();
             RefreshUi();
         }
         catch (Exception ex)
         {
-            Log.Error($"[ModManagerSettings] Apply callback failed for '{_targetMod.pckName}'. {ex}");
+            Log.Error($"[ModManagerSettings] Apply callback failed for '{GetTargetModPckName()}'. {ex}");
         }
     }
 
@@ -207,8 +183,7 @@ internal sealed partial class ModSettingsSubmenu
             }
         }
 
-        ProfileSettingsStore.SavePersistedSettingsForMod(_targetMod.pckName, values);
-        Log.Info($"[ModManagerSettings] Persisted {values.Count} setting values for '{_targetMod.pckName}'.");
+        ProfileSettingsStore.SavePersistedSettingsForMod(GetTargetModPckName(), values);
     }
 
     private static void TryApplyPersistedValue(Control row, IReadOnlyDictionary<string, string> persistedValues)

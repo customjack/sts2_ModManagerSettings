@@ -20,4 +20,11 @@ public abstract class ModSettingDefinitionBase
     /// Defaults to "Settings".
     /// </summary>
     public string Path { get; init; } = "Settings";
+
+    /// <summary>
+    /// If false, host multiplayer snapshots will not overwrite this setting on clients.
+    /// Use for client-only visuals/QoL settings that cannot cause gameplay desync.
+    /// Defaults to true.
+    /// </summary>
+    public bool AllowMultiplayerOverwrite { get; init; } = true;
 }

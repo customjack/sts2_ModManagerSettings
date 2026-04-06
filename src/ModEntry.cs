@@ -1,5 +1,4 @@
 using ModManagerSettings.Core;
-using MegaCrit.Sts2.Core.Logging;
 using MegaCrit.Sts2.Core.Modding;
 
 namespace ModManagerSettings;
@@ -13,7 +12,6 @@ public static class ModEntry
     /// </summary>
     public static void OnModLoaded()
     {
-        Log.Info("[ModManagerSettings] ModEntry.OnModLoaded invoked by STS2.");
         ModBootstrap.Initialize();
     }
 }

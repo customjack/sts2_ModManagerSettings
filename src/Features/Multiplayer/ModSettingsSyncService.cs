@@ -78,7 +78,6 @@ internal static class ModSettingsSyncService
             netService.Disconnected += disconnectedHandler;
         }
 
-        Log.Info($"[ModManagerSettings] Multiplayer sync attached to {netService.GetType().Name} from '{source}'.");
     }
 
     public static void SendSnapshotTo(INetGameService netService, ulong targetPlayerId, string source)
@@ -97,7 +96,6 @@ internal static class ModSettingsSyncService
         };
 
         netService.SendMessage(message, targetPlayerId);
-        Log.Info($"[ModManagerSettings] Sent settings snapshot to player {targetPlayerId} from '{source}'. entries={values.Count}.");
     }
 
     private static void HandleSnapshot(INetGameService netService, ModSettingsSnapshotMessage message, ulong senderId)
@@ -110,7 +108,6 @@ internal static class ModSettingsSyncService
         var values = message.Values ?? new List<ModSettingWireValue>();
         if (values.Count == 0)
         {
-            Log.Info($"[ModManagerSettings] Received empty settings snapshot from {senderId}.");
             return;
         }
 
@@ -122,7 +119,6 @@ internal static class ModSettingsSyncService
             _clientOverridesActive = true;
         }
 
-        Log.Info($"[ModManagerSettings] Applied host settings snapshot from {senderId}. entries={values.Count}.");
     }
 
     private static void OnDisconnected(INetGameService netService)
@@ -182,7 +178,6 @@ internal static class ModSettingsSyncService
         }
         ClientBaseline.Clear();
         _clientOverridesActive = false;
-        Log.Info($"[ModManagerSettings] Restored client local settings after multiplayer session. entries={toRestore.Count}.");
     }
 
     private static bool IsSessionLockedUnsafe()
@@ -235,7 +230,6 @@ internal static class ModSettingsSyncService
             }
         }
 
-        Log.Info($"{logPrefix}. applied={applied}, touched_mods={touchedMods.Count}.");
     }
 
     private static bool ApplyValue(ModSettingWireValue value)
@@ -250,7 +244,7 @@ internal static class ModSettingsSyncService
             case SettingWireType.Toggle:
             {
                 var def = FindByKey(registration.ToggleSettings, value.Key);
-                if (def?.OnApply == null || !bool.TryParse(value.Value, out var parsed))
+                if (def?.OnApply == null || !IsRemoteOverwriteAllowed(def) || !bool.TryParse(value.Value, out var parsed))
                 {
                     return false;
                 }
@@ -261,7 +255,7 @@ internal static class ModSettingsSyncService
             case SettingWireType.Number:
             {
                 var def = FindByKey(registration.NumberSettings, value.Key);
-                if (def?.OnApply == null || !double.TryParse(value.Value, NumberStyles.Float, CultureInfo.InvariantCulture, out var parsed))
+                if (def?.OnApply == null || !IsRemoteOverwriteAllowed(def) || !double.TryParse(value.Value, NumberStyles.Float, CultureInfo.InvariantCulture, out var parsed))
                 {
                     return false;
                 }
@@ -272,7 +266,7 @@ internal static class ModSettingsSyncService
             case SettingWireType.Choice:
             {
                 var def = FindByKey(registration.ChoiceSettings, value.Key);
-                if (def?.OnApply == null)
+                if (def?.OnApply == null || !IsRemoteOverwriteAllowed(def))
                 {
                     return false;
                 }
@@ -283,7 +277,7 @@ internal static class ModSettingsSyncService
             case SettingWireType.Text:
             {
                 var def = FindByKey(registration.TextSettings, value.Key);
-                if (def?.OnApply == null)
+                if (def?.OnApply == null || !IsRemoteOverwriteAllowed(def))
                 {
                     return false;
                 }
@@ -294,7 +288,7 @@ internal static class ModSettingsSyncService
             case SettingWireType.Color:
             {
                 var def = FindByKey(registration.ColorSettings, value.Key);
-                if (def?.OnApply == null)
+                if (def?.OnApply == null || !IsRemoteOverwriteAllowed(def))
                 {
                     return false;
                 }
@@ -315,26 +309,51 @@ internal static class ModSettingsSyncService
         {
             foreach (var def in registration.ToggleSettings)
             {
+                if (!IsRemoteOverwriteAllowed(def))
+                {
+                    continue;
+                }
+
                 AddCurrentValue(values, registration.ModPckName, def.Key, SettingWireType.Toggle, def.GetCurrentValue?.Invoke() ?? def.DefaultValue);
             }
 
             foreach (var def in registration.NumberSettings)
             {
+                if (!IsRemoteOverwriteAllowed(def))
+                {
+                    continue;
+                }
+
                 AddCurrentValue(values, registration.ModPckName, def.Key, SettingWireType.Number, def.GetCurrentValue?.Invoke() ?? def.DefaultValue);
             }
 
             foreach (var def in registration.ChoiceSettings)
             {
+                if (!IsRemoteOverwriteAllowed(def))
+                {
+                    continue;
+                }
+
                 AddCurrentValue(values, registration.ModPckName, def.Key, SettingWireType.Choice, def.GetCurrentValue?.Invoke() ?? def.DefaultValue);
             }
 
             foreach (var def in registration.TextSettings)
             {
+                if (!IsRemoteOverwriteAllowed(def))
+                {
+                    continue;
+                }
+
                 AddCurrentValue(values, registration.ModPckName, def.Key, SettingWireType.Text, def.GetCurrentValue?.Invoke() ?? def.DefaultValue);
             }
 
             foreach (var def in registration.ColorSettings)
             {
+                if (!IsRemoteOverwriteAllowed(def))
+                {
+                    continue;
+                }
+
                 AddCurrentValue(values, registration.ModPckName, def.Key, SettingWireType.Color, def.GetCurrentValue?.Invoke() ?? def.DefaultValue);
             }
         }
@@ -388,7 +407,7 @@ internal static class ModSettingsSyncService
             case SettingWireType.Toggle:
             {
                 var def = FindByKey(registration.ToggleSettings, key);
-                if (def == null)
+                if (def == null || !IsRemoteOverwriteAllowed(def))
                 {
                     return false;
                 }
@@ -399,7 +418,7 @@ internal static class ModSettingsSyncService
             case SettingWireType.Number:
             {
                 var def = FindByKey(registration.NumberSettings, key);
-                if (def == null)
+                if (def == null || !IsRemoteOverwriteAllowed(def))
                 {
                     return false;
                 }
@@ -410,7 +429,7 @@ internal static class ModSettingsSyncService
             case SettingWireType.Choice:
             {
                 var def = FindByKey(registration.ChoiceSettings, key);
-                if (def == null)
+                if (def == null || !IsRemoteOverwriteAllowed(def))
                 {
                     return false;
                 }
@@ -421,7 +440,7 @@ internal static class ModSettingsSyncService
             case SettingWireType.Text:
             {
                 var def = FindByKey(registration.TextSettings, key);
-                if (def == null)
+                if (def == null || !IsRemoteOverwriteAllowed(def))
                 {
                     return false;
                 }
@@ -432,7 +451,7 @@ internal static class ModSettingsSyncService
             case SettingWireType.Color:
             {
                 var def = FindByKey(registration.ColorSettings, key);
-                if (def == null)
+                if (def == null || !IsRemoteOverwriteAllowed(def))
                 {
                     return false;
                 }
@@ -456,6 +475,11 @@ internal static class ModSettingsSyncService
         }
 
         return null;
+    }
+
+    private static bool IsRemoteOverwriteAllowed(ModSettingDefinitionBase definition)
+    {
+        return definition.AllowMultiplayerOverwrite;
     }
 
     private static bool IsMultiplayer(NetGameType type)

@@ -1,6 +1,5 @@
 using System;
 using Godot;
-using MegaCrit.Sts2.Core.Logging;
 
 namespace ModManagerSettings.Features.Screens.SettingsSubmenu;
 
@@ -22,12 +21,6 @@ internal sealed partial class ModSettingsSubmenu
 
         _nodeHost.CustomMinimumSize = new Vector2(width, height);
 
-        Log.Info(
-            $"[ModManagerSettings] Scroll layout updated: " +
-            $"scroll_size=({_contentScroll.Size.X:F1},{_contentScroll.Size.Y:F1}), " +
-            $"active_path='{_activePath}', " +
-            $"path_min=({minSize.X:F1},{minSize.Y:F1}), " +
-            $"path_custom_min=({activeRows.CustomMinimumSize.X:F1},{activeRows.CustomMinimumSize.Y:F1}).");
     }
 
     private void RefreshRootSizeToViewport()
@@ -63,8 +56,5 @@ internal sealed partial class ModSettingsSubmenu
         _shell.AddThemeConstantOverride("margin_right", (int)horizontalMargin);
         _shell.AddThemeConstantOverride("margin_bottom", (int)verticalMargin);
 
-        Log.Info(
-            $"[ModManagerSettings] Shell layout: root_size=({Size.X:F1},{Size.Y:F1}), " +
-            $"margins=({horizontalMargin:F1},{verticalMargin:F1}).");
     }
 }

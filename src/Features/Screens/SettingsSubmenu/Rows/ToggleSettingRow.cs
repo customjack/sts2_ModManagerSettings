@@ -63,7 +63,6 @@ internal sealed class ToggleSettingRow : SettingRowBase
         {
             var value = _checkbox.ButtonPressed;
             _definition.OnApply.Invoke(value);
-            Log.Info($"[ModManagerSettings] Toggle applied: mod='{_modKey}' key='{_definition.Key}' value={value}.");
             return true;
         }
         catch (Exception ex)

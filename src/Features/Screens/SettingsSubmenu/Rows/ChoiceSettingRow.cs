@@ -72,7 +72,6 @@ internal sealed class ChoiceSettingRow : SettingRowBase, IApplySettingRow, IRese
 
             var value = _definition.Options[idx];
             _definition.OnApply.Invoke(value);
-            Log.Info($"[ModManagerSettings] Choice applied: mod='{_modKey}' key='{_definition.Key}' value='{value}'.");
             return true;
         }
         catch (Exception ex)

@@ -1,6 +1,5 @@
 using System;
 using ModManagerSettings.Api;
-using MegaCrit.Sts2.Core.Logging;
 
 namespace ModManagerSettings.Features.Examples;
 
@@ -27,6 +26,7 @@ internal static class BuiltInExampleSettingsRegistration
             ModPckName = "ModManagerSettings",
             DisplayName = "ModManagerSettings (DUMMY Examples)",
             Description = "DUMMY/TUTORIAL ONLY: all paths and settings here are sample data to demonstrate node-style Path grouping.",
+            ShowSettingsButtonInModdingMenu = true,
             ExplorerDescription = "DUMMY/TUTORIAL ONLY: every setting shown in this mod's explorer is example data used to demonstrate nested config paths.",
             ToggleSettings =
             [
@@ -41,7 +41,6 @@ internal static class BuiltInExampleSettingsRegistration
                     OnApply = value =>
                     {
                         _autoSyncEnabled = value;
-                        Log.Info($"[ModManagerSettings] Example toggle applied: auto_sync={value}.");
                     }
                 },
                 new ModSettingToggleDefinition
@@ -55,7 +54,6 @@ internal static class BuiltInExampleSettingsRegistration
                     OnApply = value =>
                     {
                         _showDebugOverlay = value;
-                        Log.Info($"[ModManagerSettings] Example toggle applied: show_debug_overlay={value}.");
                     }
                 },
                 new ModSettingToggleDefinition
@@ -69,7 +67,6 @@ internal static class BuiltInExampleSettingsRegistration
                     OnApply = value =>
                     {
                         _showLatencyGraph = value;
-                        Log.Info($"[ModManagerSettings] Example toggle applied: show_latency_graph={value}.");
                     }
                 }
             ],
@@ -89,7 +86,6 @@ internal static class BuiltInExampleSettingsRegistration
                     OnApply = value =>
                     {
                         _difficultyMultiplier = value;
-                        Log.Info($"[ModManagerSettings] Example number applied: difficulty_multiplier={value:F2}.");
                     }
                 },
                 new ModSettingNumberDefinition
@@ -106,7 +102,6 @@ internal static class BuiltInExampleSettingsRegistration
                     OnApply = value =>
                     {
                         _enemyHpScale = value;
-                        Log.Info($"[ModManagerSettings] Example number applied: enemy_hp_scale={value:F2}.");
                     }
                 },
                 new ModSettingNumberDefinition
@@ -123,7 +118,6 @@ internal static class BuiltInExampleSettingsRegistration
                     OnApply = value =>
                     {
                         _uiScale = value;
-                        Log.Info($"[ModManagerSettings] Example number applied: ui_scale={value:F2}.");
                     }
                 }
             ],
@@ -141,7 +135,6 @@ internal static class BuiltInExampleSettingsRegistration
                     OnApply = value =>
                     {
                         _profilePreset = value;
-                        Log.Info($"[ModManagerSettings] Example choice applied: profile_preset='{value}'.");
                     }
                 },
                 new ModSettingChoiceDefinition
@@ -156,7 +149,6 @@ internal static class BuiltInExampleSettingsRegistration
                     OnApply = value =>
                     {
                         _logVerbosity = value;
-                        Log.Info($"[ModManagerSettings] Example choice applied: log_verbosity='{value}'.");
                     }
                 }
             ],
@@ -174,7 +166,6 @@ internal static class BuiltInExampleSettingsRegistration
                     OnApply = value =>
                     {
                         _playerAlias = value;
-                        Log.Info($"[ModManagerSettings] Example text applied: player_alias='{value}'.");
                     }
                 }
             ],
@@ -192,25 +183,10 @@ internal static class BuiltInExampleSettingsRegistration
                     OnApply = value =>
                     {
                         _accentColor = value;
-                        Log.Info($"[ModManagerSettings] Example color applied: accent_color='{value}'.");
                     }
                 }
             ],
-            OnApply = () =>
-            {
-                Log.Info(
-                    "[ModManagerSettings] Example Apply invoked: " +
-                    $"auto_sync={_autoSyncEnabled}, " +
-                    $"show_debug_overlay={_showDebugOverlay}, " +
-                    $"show_latency_graph={_showLatencyGraph}, " +
-                    $"difficulty_multiplier={_difficultyMultiplier:F2}, " +
-                    $"enemy_hp_scale={_enemyHpScale:F2}, " +
-                    $"ui_scale={_uiScale:F2}, " +
-                    $"profile_preset='{_profilePreset}', " +
-                    $"player_alias='{_playerAlias}', " +
-                    $"log_verbosity='{_logVerbosity}', " +
-                    $"accent_color='{_accentColor}'.");
-            },
+            OnApply = null,
             OnRestoreDefaults = RestoreDefaults
         });
     }
@@ -228,6 +204,5 @@ internal static class BuiltInExampleSettingsRegistration
         _logVerbosity = "Info";
         _accentColor = "#50A8FFFF";
 
-        Log.Info("[ModManagerSettings] Example defaults restored.");
     }
 }

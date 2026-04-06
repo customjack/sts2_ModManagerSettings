@@ -30,11 +30,6 @@ public static class ModSettingsRegistry
             Registrations[registration.ModPckName] = guarded;
         }
 
-        Log.Info(
-            $"[ModManagerSettings] Registered settings provider for '{guarded.ModPckName}' " +
-            $"(toggles={guarded.ToggleSettings.Count}, numbers={guarded.NumberSettings.Count}, " +
-            $"choices={guarded.ChoiceSettings.Count}, text={guarded.TextSettings.Count}, " +
-            $"colors={guarded.ColorSettings.Count}).");
     }
 
     /// <summary>
@@ -101,6 +96,20 @@ public static class ModSettingsRegistry
         }
     }
 
+    public static bool ShouldShowSettingsButton(string modPckName)
+    {
+        if (string.IsNullOrWhiteSpace(modPckName))
+        {
+            return false;
+        }
+
+        lock (LockObject)
+        {
+            return Registrations.TryGetValue(modPckName, out var registration) &&
+                   registration.ShowSettingsButtonInModdingMenu;
+        }
+    }
+
     public static IReadOnlyList<ModSettingsRegistration> GetAll()
     {
         lock (LockObject)
@@ -138,7 +147,6 @@ public static class ModSettingsRegistry
     {
         if (!IsPersistenceReady())
         {
-            Log.Info($"[ModManagerSettings] Skipping registration persistence for '{modPckName}' because profile-scoped path is not ready.");
             return false;
         }
 
@@ -176,7 +184,6 @@ public static class ModSettingsRegistry
         }
 
         ProfileSettingsStore.SavePersistedSettingsForMod(modPckName, values);
-        Log.Info($"[ModManagerSettings] Persisted registration values for '{modPckName}'. count={values.Count}.");
         return true;
     }
 
@@ -327,6 +334,7 @@ public static class ModSettingsRegistry
                 Label = def.Label,
                 Description = def.Description,
                 Path = def.Path,
+                AllowMultiplayerOverwrite = def.AllowMultiplayerOverwrite,
                 DefaultValue = def.DefaultValue,
                 GetCurrentValue = def.GetCurrentValue,
                 OnApply = WrapSettingApply(registration.ModPckName, def.Key, def.OnApply)
@@ -337,6 +345,7 @@ public static class ModSettingsRegistry
                 Label = def.Label,
                 Description = def.Description,
                 Path = def.Path,
+                AllowMultiplayerOverwrite = def.AllowMultiplayerOverwrite,
                 DefaultValue = def.DefaultValue,
                 GetCurrentValue = def.GetCurrentValue,
                 MinValue = def.MinValue,
@@ -350,6 +359,7 @@ public static class ModSettingsRegistry
                 Label = def.Label,
                 Description = def.Description,
                 Path = def.Path,
+                AllowMultiplayerOverwrite = def.AllowMultiplayerOverwrite,
                 DefaultValue = def.DefaultValue,
                 GetCurrentValue = def.GetCurrentValue,
                 Options = def.Options,
@@ -361,6 +371,7 @@ public static class ModSettingsRegistry
                 Label = def.Label,
                 Description = def.Description,
                 Path = def.Path,
+                AllowMultiplayerOverwrite = def.AllowMultiplayerOverwrite,
                 DefaultValue = def.DefaultValue,
                 GetCurrentValue = def.GetCurrentValue,
                 PlaceholderText = def.PlaceholderText,
@@ -372,6 +383,7 @@ public static class ModSettingsRegistry
                 Label = def.Label,
                 Description = def.Description,
                 Path = def.Path,
+                AllowMultiplayerOverwrite = def.AllowMultiplayerOverwrite,
                 DefaultValue = def.DefaultValue,
                 GetCurrentValue = def.GetCurrentValue,
                 PlaceholderText = def.PlaceholderText,
@@ -471,7 +483,6 @@ public static class ModSettingsRegistry
                 registration.OnApply.Invoke();
             }
 
-            Log.Info($"[ModManagerSettings] Restored persisted settings for '{modPckName}'. applied={applied}, stored={persisted.Count}.");
         }
         catch (Exception ex)
         {

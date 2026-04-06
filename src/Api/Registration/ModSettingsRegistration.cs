@@ -15,6 +15,12 @@ public sealed record ModSettingsRegistration
     public string Description { get; init; } = string.Empty;
 
     /// <summary>
+    /// When true, ModManagerSettings renders a settings icon for this mod on the modding screen.
+    /// Mods must opt in explicitly so rows without a supported settings experience stay clean.
+    /// </summary>
+    public bool ShowSettingsButtonInModdingMenu { get; init; }
+
+    /// <summary>
     /// Optional custom explorer help text shown above the path tree.
     /// If empty, submenu uses the default guidance text.
     /// </summary>

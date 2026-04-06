@@ -1,5 +1,9 @@
 using System;
+using System.IO;
+using System.Reflection;
 using HarmonyLib;
+using ModManagerSettings.Api;
+using ModManagerSettings.Core;
 using ModManagerSettings.Features.Screens.SettingsSubmenu;
 using Godot;
 using MegaCrit.Sts2.Core.Logging;
@@ -11,6 +15,7 @@ namespace ModManagerSettings.Features.Screens.ModdingScreen;
 internal static class ModMenuSettingsFeature
 {
     private const string SettingsButtonName = "ModManagerSettingsButton";
+    private const string SettingsIconResourceName = "ModManagerSettings.SettingsIconPng";
     private const float ButtonWidth = 36f;
     private const float ButtonHeight = 36f;
     private const float ButtonOuterPadding = 8f;
@@ -31,6 +36,14 @@ internal static class ModMenuSettingsFeature
             return;
         }
 
+        var modPckName = ModMetadata.GetPckName(row.Mod);
+
+        if (!ModSettingsRegistry.ShouldShowSettingsButton(modPckName))
+        {
+            row.FindChild(SettingsButtonName, recursive: false, owned: false)?.QueueFree();
+            return;
+        }
+
         if (row.FindChild(SettingsButtonName, recursive: false, owned: false) != null)
         {
             return;
@@ -44,7 +57,6 @@ internal static class ModMenuSettingsFeature
         CallPositionDeferred(row, button);
         CallPositionDeferred(row, button);
 
-        Log.Info($"[ModManagerSettings] Added settings button to mod row '{row.Mod.pckName}'.");
     }
 
     private static Button CreateButton(NModMenuRow row, Mod mod)
@@ -87,6 +99,12 @@ internal static class ModMenuSettingsFeature
     private static Texture2D? LoadSettingsIcon()
     {
         const string iconPath = "res://resources/settings.png";
+        var embedded = LoadEmbeddedPngTexture(SettingsIconResourceName);
+        if (embedded != null)
+        {
+            return embedded;
+        }
+
         if (!Godot.FileAccess.FileExists(iconPath))
         {
             Log.Warn($"[ModManagerSettings] Settings icon not found at '{iconPath}'.");
@@ -96,7 +114,6 @@ internal static class ModMenuSettingsFeature
         var icon = ResourceLoader.Load<Texture2D>(iconPath);
         if (icon != null)
         {
-            Log.Info("[ModManagerSettings] Loaded settings icon via ResourceLoader.");
             return icon;
         }
 
@@ -104,12 +121,34 @@ internal static class ModMenuSettingsFeature
         var loadErr = image.Load(iconPath);
         if (loadErr == Error.Ok)
         {
-            Log.Info("[ModManagerSettings] Loaded settings icon via Image fallback.");
             return ImageTexture.CreateFromImage(image);
         }
 
         Log.Warn($"[ModManagerSettings] Failed to load settings icon at '{iconPath}'. ResourceLoader=null, Image.Load error={loadErr}.");
         return null;
+    }
+
+    private static Texture2D? LoadEmbeddedPngTexture(string resourceName)
+    {
+        var assembly = Assembly.GetExecutingAssembly();
+        using var stream = assembly.GetManifestResourceStream(resourceName);
+        if (stream == null)
+        {
+            return null;
+        }
+
+        using var memory = new MemoryStream();
+        stream.CopyTo(memory);
+
+        var image = new Image();
+        var error = image.LoadPngFromBuffer(memory.ToArray());
+        if (error != Error.Ok)
+        {
+            Log.Warn($"[ModManagerSettings] Embedded settings icon '{resourceName}' failed to decode: {error}.");
+            return null;
+        }
+
+        return ImageTexture.CreateFromImage(image);
     }
 
     private static void CallPositionDeferred(NModMenuRow row, Button button)

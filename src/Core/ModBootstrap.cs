@@ -11,7 +11,7 @@ namespace ModManagerSettings.Core;
 public static class ModBootstrap
 {
     private const string HarmonyId = "modmanagersettings.harmony";
-    private const string BuildMarker = "2026-03-14-structure-split-screens-a";
+    private const string BuildMarker = "2026-04-05-release-a";
 
     private static bool _initialized;
     private static Harmony? _harmony;
@@ -23,17 +23,14 @@ public static class ModBootstrap
     {
         if (_initialized)
         {
-            Log.Info("[ModManagerSettings] ModBootstrap.Initialize skipped (already initialized).");
             return;
         }
 
         _initialized = true;
-        Log.Info($"[ModManagerSettings] Mod bootstrap starting. build={BuildMarker}");
+        Log.Info($"[ModManagerSettings] Mod loaded. build={BuildMarker}");
         BuiltInExampleSettingsRegistration.Register();
-        Log.Info("[ModManagerSettings] Built-in example settings registered.");
 
         _harmony = new Harmony(HarmonyId);
         _harmony.PatchAll();
-        Log.Info($"[ModManagerSettings] Harmony patches applied with id '{HarmonyId}'.");
     }
 }

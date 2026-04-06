@@ -33,4 +33,8 @@
     <Compile Remove="decompile/**/*.cs" />
     <None Include="decompile/**/*.cs" />
   </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="resources/settings.png" LogicalName="ModManagerSettings.SettingsIconPng" />
+  </ItemGroup>
 </Project>
