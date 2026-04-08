@@ -451,7 +451,7 @@ public static class ModSettingsRegistry
         return all;
     }
 
-    private static void RestorePersistedValues(string modPckName)
+    public static void RestorePersistedValues(string modPckName)
     {
         try
         {

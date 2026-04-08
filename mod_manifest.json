@@ -3,7 +3,7 @@
   "name": "ModManagerSettings",
   "author": "Jack Carlton",
   "description": "Shared settings host that adds a structured, per-mod settings submenu with extensible input rows.",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "has_pck": true,
   "has_dll": true,
   "dependencies": [],
